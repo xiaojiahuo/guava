@@ -18,7 +18,7 @@ package com.google.common.collect;
 
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.annotations.VisibleForTesting;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
 /**
  * Implementation of {@link ImmutableSet} with two or more elements.
@@ -48,7 +48,7 @@ final class RegularImmutableSet<E> extends ImmutableSet<E> {
   }
 
   @Override
-  public boolean contains(@Nullable Object target) {
+  public boolean contains(@NullableDecl Object target) {
     Object[] table = this.table;
     if (target == null || table == null) {
       return false;
@@ -71,7 +71,7 @@ final class RegularImmutableSet<E> extends ImmutableSet<E> {
 
   @Override
   public UnmodifiableIterator<E> iterator() {
-    return (UnmodifiableIterator<E>) Iterators.forArray(elements, 0, size, 0);
+    return asList().iterator();
   }
 
   @Override

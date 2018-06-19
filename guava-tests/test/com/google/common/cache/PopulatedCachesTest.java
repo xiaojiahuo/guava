@@ -294,16 +294,15 @@ public class PopulatedCachesTest extends TestCase {
 
   /* ---------------- Local utilities -------------- */
 
-  /**
-   * Most of the tests in this class run against every one of these caches.
-   */
+  /** Most of the tests in this class run against every one of these caches. */
   private Iterable<LoadingCache<Object, Object>> caches() {
     // lots of different ways to configure a LoadingCache
     CacheBuilderFactory factory = cacheFactory();
-    return Iterables.transform(factory.buildAllPermutations(),
+    return Iterables.transform(
+        factory.buildAllPermutations(),
         new Function<CacheBuilder<Object, Object>, LoadingCache<Object, Object>>() {
-          @Override public LoadingCache<Object, Object> apply(
-              CacheBuilder<Object, Object> builder) {
+          @Override
+          public LoadingCache<Object, Object> apply(CacheBuilder<Object, Object> builder) {
             return builder.recordStats().build(identityLoader());
           }
         });
@@ -322,21 +321,21 @@ public class PopulatedCachesTest extends TestCase {
         .withConcurrencyLevels(ImmutableSet.of(1, 4, 16, 64))
         .withMaximumSizes(ImmutableSet.of(400, 1000))
         .withInitialCapacities(ImmutableSet.of(0, 1, 10, 100, 1000))
-        .withExpireAfterWrites(ImmutableSet.of(
-            // DurationSpec.of(500, MILLISECONDS),
-            DurationSpec.of(1, SECONDS),
-            DurationSpec.of(1, DAYS)))
-        .withExpireAfterAccesses(ImmutableSet.of(
-            // DurationSpec.of(500, MILLISECONDS),
-            DurationSpec.of(1, SECONDS),
-            DurationSpec.of(1, DAYS)))
-        .withRefreshes(ImmutableSet.of(
-            // DurationSpec.of(500, MILLISECONDS),
-            DurationSpec.of(1, SECONDS),
-            DurationSpec.of(1, DAYS)));
+        .withExpireAfterWrites(
+            ImmutableSet.of(
+                // DurationSpec.of(500, MILLISECONDS),
+                DurationSpec.of(1, SECONDS), DurationSpec.of(1, DAYS)))
+        .withExpireAfterAccesses(
+            ImmutableSet.of(
+                // DurationSpec.of(500, MILLISECONDS),
+                DurationSpec.of(1, SECONDS), DurationSpec.of(1, DAYS)))
+        .withRefreshes(
+            ImmutableSet.of(
+                // DurationSpec.of(500, MILLISECONDS),
+                DurationSpec.of(1, SECONDS), DurationSpec.of(1, DAYS)));
   }
 
-  private List<Map.Entry<Object, Object>> warmUp(LoadingCache<Object, Object> cache) {
+  private List<Entry<Object, Object>> warmUp(LoadingCache<Object, Object> cache) {
     return warmUp(cache, WARMUP_MIN, WARMUP_MAX);
   }
 
@@ -344,10 +343,10 @@ public class PopulatedCachesTest extends TestCase {
    * Returns the entries that were added to the map, so they won't fall out of a map with weak or
    * soft references until the caller drops the reference to the returned entries.
    */
-  private List<Map.Entry<Object, Object>> warmUp(
+  private List<Entry<Object, Object>> warmUp(
       LoadingCache<Object, Object> cache, int minimum, int maximum) {
 
-    List<Map.Entry<Object, Object>> entries = Lists.newArrayList();
+    List<Entry<Object, Object>> entries = Lists.newArrayList();
     for (int i = minimum; i < maximum; i++) {
       Object key = i;
       Object value = cache.getUnchecked(key);

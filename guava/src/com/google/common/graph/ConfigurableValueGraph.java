@@ -23,7 +23,7 @@ import static com.google.common.graph.Graphs.checkNonNegative;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Configurable implementation of {@link ValueGraph} that supports the options supplied by {@link
@@ -123,14 +123,12 @@ class ConfigurableValueGraph<N, V> extends AbstractValueGraph<N, V> {
   }
 
   @Override
-  @Nullable
-  public V edgeValueOrDefault(N nodeU, N nodeV, @Nullable V defaultValue) {
+  public @Nullable V edgeValueOrDefault(N nodeU, N nodeV, @Nullable V defaultValue) {
     checkNotNull(nodeU);
     checkNotNull(nodeV);
     GraphConnections<N, V> connectionsU = nodeConnections.get(nodeU);
-    return connectionsU == null
-        ? defaultValue
-        : connectionsU.value(nodeV);
+    V value = (connectionsU == null) ? null : connectionsU.value(nodeV);
+    return value == null ? defaultValue : value;
   }
 
   @Override

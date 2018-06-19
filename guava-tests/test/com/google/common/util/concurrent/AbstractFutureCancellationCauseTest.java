@@ -21,16 +21,15 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
 import junit.framework.TestCase;
 
-/**
- * Tests for {@link AbstractFuture} with the cancellation cause system property set
- */
+/** Tests for {@link AbstractFuture} with the cancellation cause system property set */
 
 public class AbstractFutureCancellationCauseTest extends TestCase {
 
   private ClassLoader oldClassLoader;
   private URLClassLoader classReloader;
 
-  @Override protected void setUp() throws Exception {
+  @Override
+  protected void setUp() throws Exception {
     // Load the "normal" copy of SettableFuture and related classes.
     SettableFuture<?> unused = SettableFuture.create();
     // Hack to load AbstractFuture et. al. in a new classloader so that it re-reads the cancellation
@@ -39,8 +38,9 @@ public class AbstractFutureCancellationCauseTest extends TestCase {
     System.setProperty("guava.concurrent.generate_cancellation_cause", "true");
     final String concurrentPackage = SettableFuture.class.getPackage().getName();
     classReloader =
-        new URLClassLoader(((URLClassLoader) SettableFuture.class.getClassLoader()).getURLs()) {
-          @Override public Class<?> loadClass(String name) throws ClassNotFoundException {
+        new URLClassLoader(ClassPathUtil.getClassPathUrls()) {
+          @Override
+          public Class<?> loadClass(String name) throws ClassNotFoundException {
             if (name.startsWith(concurrentPackage)) {
               return super.findClass(name);
             }

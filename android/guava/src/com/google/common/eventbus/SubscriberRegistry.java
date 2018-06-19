@@ -40,10 +40,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
 /**
  * Registry of subscribers to a single event bus.
@@ -61,22 +62,18 @@ final class SubscriberRegistry {
   private final ConcurrentMap<Class<?>, CopyOnWriteArraySet<Subscriber>> subscribers =
       Maps.newConcurrentMap();
 
-  /**
-   * The event bus this registry belongs to.
-   */
+  /** The event bus this registry belongs to. */
   @Weak private final EventBus bus;
 
   SubscriberRegistry(EventBus bus) {
     this.bus = checkNotNull(bus);
   }
 
-  /**
-   * Registers all subscriber methods on the given listener object.
-   */
+  /** Registers all subscriber methods on the given listener object. */
   void register(Object listener) {
     Multimap<Class<?>, Subscriber> listenerMethods = findAllSubscribers(listener);
 
-    for (Map.Entry<Class<?>, Collection<Subscriber>> entry : listenerMethods.asMap().entrySet()) {
+    for (Entry<Class<?>, Collection<Subscriber>> entry : listenerMethods.asMap().entrySet()) {
       Class<?> eventType = entry.getKey();
       Collection<Subscriber> eventMethodsInListener = entry.getValue();
 
@@ -92,13 +89,11 @@ final class SubscriberRegistry {
     }
   }
 
-  /**
-   * Unregisters all subscribers on the given listener object.
-   */
+  /** Unregisters all subscribers on the given listener object. */
   void unregister(Object listener) {
     Multimap<Class<?>, Subscriber> listenerMethods = findAllSubscribers(listener);
 
-    for (Map.Entry<Class<?>, Collection<Subscriber>> entry : listenerMethods.asMap().entrySet()) {
+    for (Entry<Class<?>, Collection<Subscriber>> entry : listenerMethods.asMap().entrySet()) {
       Class<?> eventType = entry.getKey();
       Collection<Subscriber> listenerMethodsForType = entry.getValue();
 
@@ -203,9 +198,7 @@ final class SubscriberRegistry {
     return ImmutableList.copyOf(identifiers.values());
   }
 
-  /**
-   * Global cache of classes to their flattened hierarchy of supertypes.
-   */
+  /** Global cache of classes to their flattened hierarchy of supertypes. */
   private static final LoadingCache<Class<?>, ImmutableSet<Class<?>>> flattenHierarchyCache =
       CacheBuilder.newBuilder()
           .weakKeys()
@@ -249,7 +242,7 @@ final class SubscriberRegistry {
     }
 
     @Override
-    public boolean equals(@Nullable Object o) {
+    public boolean equals(@NullableDecl Object o) {
       if (o instanceof MethodIdentifier) {
         MethodIdentifier ident = (MethodIdentifier) o;
         return name.equals(ident.name) && parameterTypes.equals(ident.parameterTypes);

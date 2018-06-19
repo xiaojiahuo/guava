@@ -83,7 +83,7 @@ abstract class SmoothRateLimiter extends RateLimiter {
    * with underutilization, then we want stored permits to be given out /faster/ than fresh ones,
    * because underutilization = free resources for the taking. If we are primarily interested to
    * deal with overflow, then stored permits could be given out /slower/ than fresh ones. Thus, we
-   * require a (different in each case) function that translates storedPermits to throtting time.
+   * require a (different in each case) function that translates storedPermits to throttling time.
    *
    * This role is played by storedPermitsToWaitTime(double storedPermits, double permitsToTake). The
    * underlying model is a continuous function mapping storedPermits (from 0.0 to maxStoredPermits)
@@ -192,7 +192,6 @@ abstract class SmoothRateLimiter extends RateLimiter {
    *       <blockquote>
    *       thresholdPermits = 0.5 * warmupPeriod / stableInterval
    *       </blockquote>
-   *
    *   <li>The time to go from maxPermits to thresholdPermits is equal to the integral of the
    *       function between thresholdPermits and maxPermits. This is the area of the pictured
    *       trapezoid, and it is equal to 0.5 * (stableInterval + coldInterval) * (maxPermits -
@@ -200,7 +199,6 @@ abstract class SmoothRateLimiter extends RateLimiter {
    *       <blockquote>
    *       maxPermits = thresholdPermits + 2 * warmupPeriod / (stableInterval + coldInterval)
    *       </blockquote>
-   *
    * </ul>
    */
   static final class SmoothWarmingUp extends SmoothRateLimiter {
@@ -210,6 +208,7 @@ abstract class SmoothRateLimiter extends RateLimiter {
      * (when permits == maxPermits)
      */
     private double slope;
+
     private double thresholdPermits;
     private double coldFactor;
 
@@ -247,13 +246,14 @@ abstract class SmoothRateLimiter extends RateLimiter {
       if (availablePermitsAboveThreshold > 0.0) {
         double permitsAboveThresholdToTake = min(availablePermitsAboveThreshold, permitsToTake);
         // TODO(cpovirk): Figure out a good name for this variable.
-        double length = permitsToTime(availablePermitsAboveThreshold)
-            + permitsToTime(availablePermitsAboveThreshold - permitsAboveThresholdToTake);
+        double length =
+            permitsToTime(availablePermitsAboveThreshold)
+                + permitsToTime(availablePermitsAboveThreshold - permitsAboveThresholdToTake);
         micros = (long) (permitsAboveThresholdToTake * length / 2.0);
         permitsToTake -= permitsAboveThresholdToTake;
       }
       // measuring the integral on the left part of the function (the horizontal line)
-      micros += (stableIntervalMicros * permitsToTake);
+      micros += (long) (stableIntervalMicros * permitsToTake);
       return micros;
     }
 
@@ -308,14 +308,10 @@ abstract class SmoothRateLimiter extends RateLimiter {
     }
   }
 
-  /**
-   * The currently stored permits.
-   */
+  /** The currently stored permits. */
   double storedPermits;
 
-  /**
-   * The maximum number of stored permits.
-   */
+  /** The maximum number of stored permits. */
   double maxPermits;
 
   /**
@@ -383,9 +379,7 @@ abstract class SmoothRateLimiter extends RateLimiter {
    */
   abstract double coolDownIntervalMicros();
 
-  /**
-   * Updates {@code storedPermits} and {@code nextFreeTicketMicros} based on the current time.
-   */
+  /** Updates {@code storedPermits} and {@code nextFreeTicketMicros} based on the current time. */
   void resync(long nowMicros) {
     // if nextFreeTicket is in the past, resync to now
     if (nowMicros > nextFreeTicketMicros) {

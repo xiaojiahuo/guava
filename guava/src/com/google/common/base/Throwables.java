@@ -32,7 +32,7 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Static utility methods pertaining to instances of {@link Throwable}.
@@ -94,7 +94,7 @@ public final class Throwables {
    * </pre>
    *
    * @deprecated Use {@link #throwIfInstanceOf}, which has the same behavior but rejects {@code
-   *     null}. This method is scheduled to be removed in July 2018.
+   *     null}.
    */
   @Deprecated
   @GwtIncompatible // throwIfInstanceOf
@@ -150,7 +150,7 @@ public final class Throwables {
    * </pre>
    *
    * @deprecated Use {@link #throwIfUnchecked}, which has the same behavior but rejects {@code
-   *     null}. This method is scheduled to be removed in July 2018.
+   *     null}.
    */
   @Deprecated
   @GwtIncompatible
@@ -231,7 +231,7 @@ public final class Throwables {
    * @deprecated Use {@code throw e} or {@code throw new RuntimeException(e)} directly, or use a
    *     combination of {@link #throwIfUnchecked} and {@code throw new RuntimeException(e)}. For
    *     background on the deprecation, read <a href="https://goo.gl/Ivn2kc">Why we deprecated
-   *     {@code Throwables.propagate}</a>. This method is scheduled to be removed in July 2018.
+   *     {@code Throwables.propagate}</a>.
    */
   @CanIgnoreReturnValue
   @GwtIncompatible
@@ -448,32 +448,30 @@ public final class Throwables {
 
   /** Access to some fancy internal JVM internals. */
   @GwtIncompatible // java.lang.reflect
-  @Nullable
-  private static final Object jla = getJLA();
+  private static final @Nullable Object jla = getJLA();
 
   /**
    * The "getStackTraceElementMethod" method, only available on some JDKs so we use reflection to
    * find it when available. When this is null, use the slow way.
    */
   @GwtIncompatible // java.lang.reflect
-  @Nullable
-  private static final Method getStackTraceElementMethod = (jla == null) ? null : getGetMethod();
+  private static final @Nullable Method getStackTraceElementMethod =
+      (jla == null) ? null : getGetMethod();
 
   /**
    * The "getStackTraceDepth" method, only available on some JDKs so we use reflection to find it
    * when available. When this is null, use the slow way.
    */
   @GwtIncompatible // java.lang.reflect
-  @Nullable
-  private static final Method getStackTraceDepthMethod = (jla == null) ? null : getSizeMethod();
+  private static final @Nullable Method getStackTraceDepthMethod =
+      (jla == null) ? null : getSizeMethod();
 
   /**
-   * Returns the JavaLangAccess class that is present in all Sun JDKs. It is not whitelisted for
+   * Returns the JavaLangAccess class that is present in all Sun JDKs. It is not allowed in
    * AppEngine, and not present in non-Sun JDKs.
    */
   @GwtIncompatible // java.lang.reflect
-  @Nullable
-  private static Object getJLA() {
+  private static @Nullable Object getJLA() {
     try {
       /*
        * We load sun.misc.* classes using reflection since Android doesn't support these classes and
@@ -486,7 +484,7 @@ public final class Throwables {
       throw death;
     } catch (Throwable t) {
       /*
-       * This is not one of AppEngine's whitelisted classes, so even in Sun JDKs, this can fail with
+       * This is not one of AppEngine's allowed classes, so even in Sun JDKs, this can fail with
        * a NoClassDefFoundError. Other apps might deny access to sun.misc packages.
        */
       return null;
@@ -498,24 +496,36 @@ public final class Throwables {
    * method cannot be found (it is only to be found in fairly recent JDKs).
    */
   @GwtIncompatible // java.lang.reflect
-  @Nullable
-  private static Method getGetMethod() {
+  private static @Nullable Method getGetMethod() {
     return getJlaMethod("getStackTraceElement", Throwable.class, int.class);
   }
 
   /**
    * Returns the Method that can be used to return the size of a stack, or null if that method
-   * cannot be found (it is only to be found in fairly recent JDKs).
+   * cannot be found (it is only to be found in fairly recent JDKs). Tries to test method {@link
+   * sun.misc.JavaLangAccess#getStackTraceDepth(Throwable)} getStackTraceDepth} prior to return it
+   * (might fail some JDKs).
+   *
+   * <p>See <a href="https://github.com/google/guava/issues/2887">Throwables#lazyStackTrace throws
+   * UnsupportedOperationException</a>.
    */
   @GwtIncompatible // java.lang.reflect
-  @Nullable
-  private static Method getSizeMethod() {
-    return getJlaMethod("getStackTraceDepth", Throwable.class);
+  private static @Nullable Method getSizeMethod() {
+    try {
+      Method getStackTraceDepth = getJlaMethod("getStackTraceDepth", Throwable.class);
+      if (getStackTraceDepth == null) {
+        return null;
+      }
+      getStackTraceDepth.invoke(getJLA(), new Throwable());
+      return getStackTraceDepth;
+    } catch (UnsupportedOperationException | IllegalAccessException | InvocationTargetException e) {
+      return null;
+    }
   }
 
   @GwtIncompatible // java.lang.reflect
-  @Nullable
-  private static Method getJlaMethod(String name, Class<?>... parameterTypes) throws ThreadDeath {
+  private static @Nullable Method getJlaMethod(String name, Class<?>... parameterTypes)
+      throws ThreadDeath {
     try {
       return Class.forName(JAVA_LANG_ACCESS_CLASSNAME, false, null).getMethod(name, parameterTypes);
     } catch (ThreadDeath death) {

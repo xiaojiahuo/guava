@@ -21,6 +21,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Sets;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -48,8 +49,7 @@ public final class SimpleTimeLimiter implements TimeLimiter {
 
   private final ExecutorService executor;
 
-  private
-  SimpleTimeLimiter(ExecutorService executor) {
+  private SimpleTimeLimiter(ExecutorService executor) {
     this.executor = checkNotNull(executor);
   }
 
@@ -105,6 +105,14 @@ public final class SimpleTimeLimiter implements TimeLimiter {
     return newProxy(interfaceType, handler);
   }
 
+  // TODO: replace with version in common.reflect if and when it's open-sourced
+  private static <T> T newProxy(Class<T> interfaceType, InvocationHandler handler) {
+    Object object =
+        Proxy.newProxyInstance(
+            interfaceType.getClassLoader(), new Class<?>[] {interfaceType}, handler);
+    return interfaceType.cast(object);
+  }
+
   private
   <T> T callWithTimeout(
       Callable<T> callable, long timeoutDuration, TimeUnit timeoutUnit, boolean amInterruptible)
@@ -134,6 +142,7 @@ public final class SimpleTimeLimiter implements TimeLimiter {
     }
   }
 
+  @CanIgnoreReturnValue
   @Override
   public <T> T callWithTimeout(Callable<T> callable, long timeoutDuration, TimeUnit timeoutUnit)
       throws TimeoutException, InterruptedException, ExecutionException {
@@ -154,6 +163,7 @@ public final class SimpleTimeLimiter implements TimeLimiter {
     }
   }
 
+  @CanIgnoreReturnValue
   @Override
   public <T> T callUninterruptiblyWithTimeout(
       Callable<T> callable, long timeoutDuration, TimeUnit timeoutUnit)
@@ -253,14 +263,6 @@ public final class SimpleTimeLimiter implements TimeLimiter {
       }
     }
     return false;
-  }
-
-  // TODO: replace with version in common.reflect if and when it's open-sourced
-  private static <T> T newProxy(Class<T> interfaceType, InvocationHandler handler) {
-    Object object =
-        Proxy.newProxyInstance(
-            interfaceType.getClassLoader(), new Class<?>[] {interfaceType}, handler);
-    return interfaceType.cast(object);
   }
 
   private void wrapAndThrowExecutionExceptionOrError(Throwable cause) throws ExecutionException {

@@ -17,7 +17,7 @@ package com.google.common.math;
 import com.google.common.annotations.GwtCompatible;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.math.BigInteger;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * A collection of preconditions for math functions.
@@ -88,9 +88,15 @@ final class MathPreconditions {
     }
   }
 
-  static void checkNoOverflow(boolean condition) {
+  static void checkNoOverflow(boolean condition, String methodName, int a, int b) {
     if (!condition) {
-      throw new ArithmeticException("overflow");
+      throw new ArithmeticException("overflow: " + methodName + "(" + a + ", " + b + ")");
+    }
+  }
+
+  static void checkNoOverflow(boolean condition, String methodName, long a, long b) {
+    if (!condition) {
+      throw new ArithmeticException("overflow: " + methodName + "(" + a + ", " + b + ")");
     }
   }
 

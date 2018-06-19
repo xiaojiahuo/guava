@@ -16,23 +16,25 @@ package com.google.common.primitives;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkPositionIndexes;
 
 import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.Comparator;
 import sun.misc.Unsafe;
 
 /**
  * Static utility methods pertaining to {@code byte} primitives that interpret values as
- * <i>unsigned</i> (that is, any negative value {@code b} is treated as the positive value
- * {@code 256 + b}). The corresponding methods that treat the values as signed are found in
- * {@link SignedBytes}, and the methods for which signedness is not an issue are in {@link Bytes}.
+ * <i>unsigned</i> (that is, any negative value {@code b} is treated as the positive value {@code
+ * 256 + b}). The corresponding methods that treat the values as signed are found in {@link
+ * SignedBytes}, and the methods for which signedness is not an issue are in {@link Bytes}.
  *
- * <p>See the Guava User Guide article on
- * <a href="https://github.com/google/guava/wiki/PrimitivesExplained">primitive utilities</a>.
+ * <p>See the Guava User Guide article on <a
+ * href="https://github.com/google/guava/wiki/PrimitivesExplained">primitive utilities</a>.
  *
  * @author Kevin Bourrillion
  * @author Martin Buchholz
@@ -45,8 +47,7 @@ public final class UnsignedBytes {
   private UnsignedBytes() {}
 
   /**
-   * The largest power of two that can be represented as an unsigned {@code
-   * byte}.
+   * The largest power of two that can be represented as an unsigned {@code byte}.
    *
    * @since 10.0
    */
@@ -88,8 +89,8 @@ public final class UnsignedBytes {
   }
 
   /**
-   * Returns the {@code byte} value that, when treated as unsigned, is nearest in value to
-   * {@code value}.
+   * Returns the {@code byte} value that, when treated as unsigned, is nearest in value to {@code
+   * value}.
    *
    * @param value any {@code long} value
    * @return {@code (byte) 255} if {@code value >= 255}, {@code (byte) 0} if {@code value <= 0}, and
@@ -194,8 +195,8 @@ public final class UnsignedBytes {
    *
    * @throws NumberFormatException if the string does not contain a valid unsigned {@code byte}
    *     value
-   * @throws NullPointerException if {@code string} is null (in contrast to
-   *     {@link Byte#parseByte(String)})
+   * @throws NullPointerException if {@code string} is null (in contrast to {@link
+   *     Byte#parseByte(String)})
    * @since 13.0
    */
   @Beta
@@ -210,10 +211,10 @@ public final class UnsignedBytes {
    * @param string the string containing the unsigned {@code byte} representation to be parsed.
    * @param radix the radix to use while parsing {@code string}
    * @throws NumberFormatException if the string does not contain a valid unsigned {@code byte} with
-   *     the given radix, or if {@code radix} is not between {@link Character#MIN_RADIX} and
-   *     {@link Character#MAX_RADIX}.
-   * @throws NullPointerException if {@code string} is null (in contrast to
-   *     {@link Byte#parseByte(String)})
+   *     the given radix, or if {@code radix} is not between {@link Character#MIN_RADIX} and {@link
+   *     Character#MAX_RADIX}.
+   * @throws NullPointerException if {@code string} is null (in contrast to {@link
+   *     Byte#parseByte(String)})
    * @since 13.0
    */
   @Beta
@@ -230,8 +231,8 @@ public final class UnsignedBytes {
 
   /**
    * Returns a string containing the supplied {@code byte} values separated by {@code separator}.
-   * For example, {@code join(":", (byte) 1, (byte) 2,
-   * (byte) 255)} returns the string {@code "1:2:255"}.
+   * For example, {@code join(":", (byte) 1, (byte) 2, (byte) 255)} returns the string {@code
+   * "1:2:255"}.
    *
    * @param separator the text that should appear between consecutive values in the resulting string
    *     (but not at the start or end)
@@ -261,8 +262,8 @@ public final class UnsignedBytes {
    * unsigned.
    *
    * <p>The returned comparator is inconsistent with {@link Object#equals(Object)} (since arrays
-   * support only identity equality), but it is consistent with
-   * {@link java.util.Arrays#equals(byte[], byte[])}.
+   * support only identity equality), but it is consistent with {@link
+   * java.util.Arrays#equals(byte[], byte[])}.
    *
    * @since 2.0
    */
@@ -320,10 +321,10 @@ public final class UnsignedBytes {
         // fall back to the safer pure java implementation unless we're in
         // a 64-bit JVM with an 8-byte aligned field offset.
         if (!("64".equals(System.getProperty("sun.arch.data.model"))
-              && (BYTE_ARRAY_BASE_OFFSET % 8) == 0
-              // sanity check - this should never fail
-              && theUnsafe.arrayIndexScale(byte[].class) == 1)) {
-          throw new Error();  // force fallback to PureJavaComparator
+            && (BYTE_ARRAY_BASE_OFFSET % 8) == 0
+            // sanity check - this should never fail
+            && theUnsafe.arrayIndexScale(byte[].class) == 1)) {
+          throw new Error(); // force fallback to PureJavaComparator
         }
       }
 
@@ -366,7 +367,7 @@ public final class UnsignedBytes {
         int minLength = Math.min(left.length, right.length);
         int strideLimit = minLength & ~(stride - 1);
         int i;
-        
+
         /*
          * Compare 8 bytes at a time. Benchmarking on x86 shows a stride of 8 bytes is no slower
          * than 4 bytes even on 32-bit. On the other hand, it is substantially faster on 64-bit.
@@ -443,6 +444,67 @@ public final class UnsignedBytes {
       } catch (Throwable t) { // ensure we really catch *everything*
         return lexicographicalComparatorJavaImpl();
       }
+    }
+  }
+
+  private static byte flip(byte b) {
+    return (byte) (b ^ 0x80);
+  }
+
+  /**
+   * Sorts the array, treating its elements as unsigned bytes.
+   *
+   * @since 23.1
+   */
+  public static void sort(byte[] array) {
+    checkNotNull(array);
+    sort(array, 0, array.length);
+  }
+
+  /**
+   * Sorts the array between {@code fromIndex} inclusive and {@code toIndex} exclusive, treating its
+   * elements as unsigned bytes.
+   *
+   * @since 23.1
+   */
+  public static void sort(byte[] array, int fromIndex, int toIndex) {
+    checkNotNull(array);
+    checkPositionIndexes(fromIndex, toIndex, array.length);
+    for (int i = fromIndex; i < toIndex; i++) {
+      array[i] = flip(array[i]);
+    }
+    Arrays.sort(array, fromIndex, toIndex);
+    for (int i = fromIndex; i < toIndex; i++) {
+      array[i] = flip(array[i]);
+    }
+  }
+
+  /**
+   * Sorts the elements of {@code array} in descending order, interpreting them as unsigned 8-bit
+   * integers.
+   *
+   * @since 23.1
+   */
+  public static void sortDescending(byte[] array) {
+    checkNotNull(array);
+    sortDescending(array, 0, array.length);
+  }
+
+  /**
+   * Sorts the elements of {@code array} between {@code fromIndex} inclusive and {@code toIndex}
+   * exclusive in descending order, interpreting them as unsigned 8-bit integers.
+   *
+   * @since 23.1
+   */
+  public static void sortDescending(byte[] array, int fromIndex, int toIndex) {
+    checkNotNull(array);
+    checkPositionIndexes(fromIndex, toIndex, array.length);
+    for (int i = fromIndex; i < toIndex; i++) {
+      array[i] ^= Byte.MAX_VALUE;
+    }
+    Arrays.sort(array, fromIndex, toIndex);
+    for (int i = fromIndex; i < toIndex; i++) {
+      array[i] ^= Byte.MAX_VALUE;
     }
   }
 }

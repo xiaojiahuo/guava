@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 import java.util.stream.Collector;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * A {@link RangeMap} whose contents will never change, with many other important properties
@@ -51,7 +51,7 @@ public class ImmutableRangeMap<K extends Comparable<?>, V> implements RangeMap<K
    * Returns a {@code Collector} that accumulates the input elements into a new {@code
    * ImmutableRangeMap}. As in {@link Builder}, overlapping ranges are not permitted.
    *
-   * @since 24.0
+   * @since 23.1
    */
   @Beta
   public static <T, K extends Comparable<? super K>, V>
@@ -61,17 +61,13 @@ public class ImmutableRangeMap<K extends Comparable<?>, V> implements RangeMap<K
     return CollectCollectors.toImmutableRangeMap(keyFunction, valueFunction);
   }
 
-  /**
-   * Returns an empty immutable range map.
-   */
+  /** Returns an empty immutable range map. */
   @SuppressWarnings("unchecked")
   public static <K extends Comparable<?>, V> ImmutableRangeMap<K, V> of() {
     return (ImmutableRangeMap<K, V>) EMPTY;
   }
 
-  /**
-   * Returns an immutable range map mapping a single range to a single value.
-   */
+  /** Returns an immutable range map mapping a single range to a single value. */
   public static <K extends Comparable<?>, V> ImmutableRangeMap<K, V> of(Range<K> range, V value) {
     return new ImmutableRangeMap<>(ImmutableList.of(range), ImmutableList.of(value));
   }
@@ -92,18 +88,18 @@ public class ImmutableRangeMap<K extends Comparable<?>, V> implements RangeMap<K
     return new ImmutableRangeMap<>(rangesBuilder.build(), valuesBuilder.build());
   }
 
-  /**
-   * Returns a new builder for an immutable range map.
-   */
+  /** Returns a new builder for an immutable range map. */
   public static <K extends Comparable<?>, V> Builder<K, V> builder() {
     return new Builder<>();
   }
 
   /**
    * A builder for immutable range maps. Overlapping ranges are prohibited.
+   *
+   * @since 14.0
    */
   public static final class Builder<K extends Comparable<?>, V> {
-    private final List<Map.Entry<Range<K>, V>> entries;
+    private final List<Entry<Range<K>, V>> entries;
 
     public Builder() {
       this.entries = Lists.newArrayList();
@@ -123,9 +119,7 @@ public class ImmutableRangeMap<K extends Comparable<?>, V> implements RangeMap<K
       return this;
     }
 
-    /**
-     * Copies all associations from the specified range map into this builder.
-     */
+    /** Copies all associations from the specified range map into this builder. */
     @CanIgnoreReturnValue
     public Builder<K, V> putAll(RangeMap<K, ? extends V> rangeMap) {
       for (Entry<Range<K>, ? extends V> entry : rangeMap.asMapOfRanges().entrySet()) {
@@ -175,8 +169,7 @@ public class ImmutableRangeMap<K extends Comparable<?>, V> implements RangeMap<K
   }
 
   @Override
-  @Nullable
-  public V get(K key) {
+  public @Nullable V get(K key) {
     int index =
         SortedLists.binarySearch(
             ranges,
@@ -193,8 +186,7 @@ public class ImmutableRangeMap<K extends Comparable<?>, V> implements RangeMap<K
   }
 
   @Override
-  @Nullable
-  public Map.Entry<Range<K>, V> getEntry(K key) {
+  public @Nullable Entry<Range<K>, V> getEntry(K key) {
     int index =
         SortedLists.binarySearch(
             ranges,
@@ -381,8 +373,8 @@ public class ImmutableRangeMap<K extends Comparable<?>, V> implements RangeMap<K
   }
 
   /**
-   * This class is used to serialize ImmutableRangeMap instances.
-   * Serializes the {@link #asMapOfRanges()} form.
+   * This class is used to serialize ImmutableRangeMap instances. Serializes the {@link
+   * #asMapOfRanges()} form.
    */
   private static class SerializedForm<K extends Comparable<?>, V> implements Serializable {
 

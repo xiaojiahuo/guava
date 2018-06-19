@@ -22,7 +22,7 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * This class provides a skeletal implementation of {@link ValueGraph}. It is recommended to extend

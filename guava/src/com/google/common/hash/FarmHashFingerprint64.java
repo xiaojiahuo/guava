@@ -30,9 +30,9 @@ import com.google.common.annotations.VisibleForTesting;
  * to unsigned arithmetic in all cases except:
  *
  * <ul>
- * <li>comparisons (signed values can be negative)
- * <li>division (avoided here)
- * <li>shifting (right shift must be unsigned)
+ *   <li>comparisons (signed values can be negative)
+ *   <li>division (avoided here)
+ *   <li>shifting (right shift must be unsigned)
  * </ul>
  *
  * @author Kyle Maddison
@@ -175,7 +175,8 @@ final class FarmHashFingerprint64 extends AbstractNonStreamingHashFunction {
     @SuppressWarnings("ConstantOverflow")
     long y = seed * K1 + 113;
     long z = shiftMix(y * K2 + 113) * K2;
-    long[] v = new long[2], w = new long[2];
+    long[] v = new long[2];
+    long[] w = new long[2];
     x = x * K2 + load64(bytes, offset);
 
     // Set end so that after the loop we have 1 to 64 bytes left to process.

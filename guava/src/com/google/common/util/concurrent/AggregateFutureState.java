@@ -29,9 +29,10 @@ import java.util.logging.Logger;
 /**
  * A helper which does some thread-safe operations for aggregate futures, which must be implemented
  * differently in GWT. Namely:
+ *
  * <ul>
- * <li>Lazily initializes a set of seen exceptions
- * <li>Decrements a counter atomically
+ *   <li>Lazily initializes a set of seen exceptions
+ *   <li>Decrements a counter atomically
  * </ul>
  */
 @GwtCompatible(emulated = true)
@@ -49,6 +50,7 @@ abstract class AggregateFutureState {
 
   static {
     AtomicHelper helper;
+    Throwable thrownReflectionFailure = null;
     try {
       helper =
           new SafeAtomicHelper(
@@ -59,10 +61,15 @@ abstract class AggregateFutureState {
       // getDeclaredField to throw a NoSuchFieldException when the field is definitely there.
       // For these users fallback to a suboptimal implementation, based on synchronized. This will
       // be a definite performance hit to those users.
-      log.log(Level.SEVERE, "SafeAtomicHelper is broken!", reflectionFailure);
+      thrownReflectionFailure = reflectionFailure;
       helper = new SynchronizedAtomicHelper();
     }
     ATOMIC_HELPER = helper;
+    // Log after all static init is finished; if an installed logger uses any Futures methods, it
+    // shouldn't break in cases where reflection is missing/broken.
+    if (thrownReflectionFailure != null) {
+      log.log(Level.SEVERE, "SafeAtomicHelper is broken!", thrownReflectionFailure);
+    }
   }
 
   AggregateFutureState(int remainingFutures) {

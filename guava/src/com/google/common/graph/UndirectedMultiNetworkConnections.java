@@ -30,7 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * An implementation of {@link NetworkConnections} for undirected networks with parallel edges.
@@ -55,8 +55,7 @@ final class UndirectedMultiNetworkConnections<N, E>
     return new UndirectedMultiNetworkConnections<>(ImmutableMap.copyOf(incidentEdges));
   }
 
-  @LazyInit
-  private transient Reference<Multiset<N>> adjacentNodesReference;
+  @LazyInit private transient Reference<Multiset<N>> adjacentNodesReference;
 
   @Override
   public Set<N> adjacentNodes() {
@@ -116,8 +115,7 @@ final class UndirectedMultiNetworkConnections<N, E>
     }
   }
 
-  @Nullable
-  private static <T> T getReference(@Nullable Reference<T> reference) {
+  private static <T> @Nullable T getReference(@Nullable Reference<T> reference) {
     return (reference == null) ? null : reference.get();
   }
 }

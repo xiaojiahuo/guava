@@ -22,7 +22,7 @@ import java.util.AbstractList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.RandomAccess;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Implementation of {@link Lists#cartesianProduct(List)}.

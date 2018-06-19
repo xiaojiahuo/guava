@@ -31,14 +31,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
- * Tests {@link MapTestSuiteBuilder} by using it against maps that have various
- * negative behaviors.
+ * Tests {@link MapTestSuiteBuilder} by using it against maps that have various negative behaviors.
  *
  * @author George van den Driessche
  */
@@ -46,19 +46,17 @@ public final class MapTestSuiteBuilderTests extends TestCase {
   private MapTestSuiteBuilderTests() {}
 
   public static Test suite() {
-    TestSuite suite = new TestSuite(
-        MapTestSuiteBuilderTests.class.getSimpleName());
+    TestSuite suite = new TestSuite(MapTestSuiteBuilderTests.class.getSimpleName());
     suite.addTest(testsForHashMapNullKeysForbidden());
     suite.addTest(testsForHashMapNullValuesForbidden());
     return suite;
   }
 
-  private abstract static class WrappedHashMapGenerator
-      extends TestStringMapGenerator {
-    @Override protected final Map<String, String> create(
-        Map.Entry<String, String>[] entries) {
+  private abstract static class WrappedHashMapGenerator extends TestStringMapGenerator {
+    @Override
+    protected final Map<String, String> create(Entry<String, String>[] entries) {
       HashMap<String, String> map = Maps.newHashMap();
-      for (Map.Entry<String, String> entry : entries) {
+      for (Entry<String, String> entry : entries) {
         map.put(entry.getKey(), entry.getValue());
       }
       return wrap(map);
@@ -70,7 +68,8 @@ public final class MapTestSuiteBuilderTests extends TestCase {
   private static TestSuite wrappedHashMapTests(
       WrappedHashMapGenerator generator, String name, Feature<?>... features) {
     List<Feature<?>> featuresList = Lists.newArrayList(features);
-    Collections.addAll(featuresList,
+    Collections.addAll(
+        featuresList,
         MapFeature.GENERAL_PURPOSE,
         CollectionFeature.SUPPORTS_ITERATOR_REMOVE,
         CollectionSize.ANY);
@@ -83,40 +82,54 @@ public final class MapTestSuiteBuilderTests extends TestCase {
   // TODO: consider being null-hostile in these tests
 
   private static Test testsForHashMapNullKeysForbidden() {
-    return wrappedHashMapTests(new WrappedHashMapGenerator() {
-      @Override Map<String, String> wrap(final HashMap<String, String> map) {
-        if (map.containsKey(null)) {
-          throw new NullPointerException();
-        }
-        return new AbstractMap<String, String>() {
-          @Override public Set<Map.Entry<String, String>> entrySet() {
-            return map.entrySet();
+    return wrappedHashMapTests(
+        new WrappedHashMapGenerator() {
+          @Override
+          Map<String, String> wrap(final HashMap<String, String> map) {
+            if (map.containsKey(null)) {
+              throw new NullPointerException();
+            }
+            return new AbstractMap<String, String>() {
+              @Override
+              public Set<Entry<String, String>> entrySet() {
+                return map.entrySet();
+              }
+
+              @Override
+              public String put(String key, String value) {
+                checkNotNull(key);
+                return map.put(key, value);
+              }
+            };
           }
-          @Override public String put(String key, String value) {
-            checkNotNull(key);
-            return map.put(key, value);
-          }
-        };
-      }
-    }, "HashMap w/out null keys", ALLOWS_NULL_VALUES);
+        },
+        "HashMap w/out null keys",
+        ALLOWS_NULL_VALUES);
   }
 
   private static Test testsForHashMapNullValuesForbidden() {
-    return wrappedHashMapTests(new WrappedHashMapGenerator() {
-      @Override Map<String, String> wrap(final HashMap<String, String> map) {
-        if (map.containsValue(null)) {
-          throw new NullPointerException();
-        }
-        return new AbstractMap<String, String>() {
-          @Override public Set<Map.Entry<String, String>> entrySet() {
-            return map.entrySet();
+    return wrappedHashMapTests(
+        new WrappedHashMapGenerator() {
+          @Override
+          Map<String, String> wrap(final HashMap<String, String> map) {
+            if (map.containsValue(null)) {
+              throw new NullPointerException();
+            }
+            return new AbstractMap<String, String>() {
+              @Override
+              public Set<Entry<String, String>> entrySet() {
+                return map.entrySet();
+              }
+
+              @Override
+              public String put(String key, String value) {
+                checkNotNull(value);
+                return map.put(key, value);
+              }
+            };
           }
-          @Override public String put(String key, String value) {
-            checkNotNull(value);
-            return map.put(key, value);
-          }
-        };
-      }
-    }, "HashMap w/out null values", ALLOWS_NULL_KEYS);
+        },
+        "HashMap w/out null values",
+        ALLOWS_NULL_KEYS);
   }
 }

@@ -19,13 +19,11 @@ package com.google.common.base;
 import static jsinterop.annotations.JsPackage.GLOBAL;
 
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 import jsinterop.annotations.JsMethod;
 import jsinterop.annotations.JsType;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * @author Jesse Wilson
- */
+/** @author Jesse Wilson */
 final class Platform {
   static CharMatcher precomputeCharMatcher(CharMatcher matcher) {
     // CharMatcher.precomputed() produces CharMatchers that are maybe a little
@@ -58,9 +56,19 @@ final class Platform {
     return !string;
   }-*/;
 
+  @JsMethod
+  static native String nullToEmpty(@Nullable String string) /*-{
+    return string || "";
+  }-*/;
+
+  @JsMethod
+  static native String emptyToNull(@Nullable String string) /*-{
+    return string || null;
+  }-*/;
+
   @JsType(isNative = true, name = "Number", namespace = GLOBAL)
-  private static class Number {
-    public native double toPrecision(int precision);
+  private interface Number {
+    double toPrecision(int precision);
   }
 
   static CommonPattern compilePattern(String pattern) {

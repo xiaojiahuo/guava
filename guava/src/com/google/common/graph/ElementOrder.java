@@ -28,7 +28,7 @@ import com.google.common.collect.Ordering;
 import com.google.errorprone.annotations.Immutable;
 import java.util.Comparator;
 import java.util.Map;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Used to represent the order of elements in a data structure that supports different options for
@@ -50,16 +50,15 @@ public final class ElementOrder<T> {
   private final Type type;
 
   @SuppressWarnings("Immutable") // Hopefully the comparator provided is immutable!
-  @Nullable
-  private final Comparator<T> comparator;
+  private final @Nullable Comparator<T> comparator;
 
   /**
    * The type of ordering that this object specifies.
    *
    * <ul>
-   * <li>UNORDERED: no order is guaranteed.
-   * <li>INSERTION: insertion ordering is guaranteed.
-   * <li>SORTED: ordering according to a supplied comparator is guaranteed.
+   *   <li>UNORDERED: no order is guaranteed.
+   *   <li>INSERTION: insertion ordering is guaranteed.
+   *   <li>SORTED: ordering according to a supplied comparator is guaranteed.
    * </ul>
    */
   public enum Type {

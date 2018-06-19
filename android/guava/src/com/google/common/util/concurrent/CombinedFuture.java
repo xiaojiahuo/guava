@@ -25,11 +25,9 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
-/**
- * Aggregate future that computes its value by calling a callable.
- */
+/** Aggregate future that computes its value by calling a callable. */
 @GwtCompatible
 final class CombinedFuture<V> extends AggregateFuture<Object, V> {
   CombinedFuture(
@@ -66,7 +64,7 @@ final class CombinedFuture<V> extends AggregateFuture<Object, V> {
     }
 
     @Override
-    void collectOneValue(boolean allMustSucceed, int index, @Nullable Object returnValue) {}
+    void collectOneValue(boolean allMustSucceed, int index, @NullableDecl Object returnValue) {}
 
     @Override
     void handleAllCompleted() {
@@ -96,7 +94,7 @@ final class CombinedFuture<V> extends AggregateFuture<Object, V> {
   @WeakOuter
   private abstract class CombinedFutureInterruptibleTask<T> extends InterruptibleTask<T> {
     private final Executor listenerExecutor;
-    volatile boolean thrownByExecute = true;
+    boolean thrownByExecute = true;
 
     public CombinedFutureInterruptibleTask(Executor listenerExecutor) {
       this.listenerExecutor = checkNotNull(listenerExecutor);
@@ -161,7 +159,7 @@ final class CombinedFuture<V> extends AggregateFuture<Object, V> {
     }
 
     @Override
-    public String toString() {
+    String toPendingString() {
       return callable.toString();
     }
   }
@@ -187,7 +185,7 @@ final class CombinedFuture<V> extends AggregateFuture<Object, V> {
     }
 
     @Override
-    public String toString() {
+    String toPendingString() {
       return callable.toString();
     }
   }

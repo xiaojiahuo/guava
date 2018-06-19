@@ -18,7 +18,6 @@ import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.base.Function;
-import com.google.errorprone.annotations.DoNotMock;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
@@ -67,7 +66,6 @@ import java.util.concurrent.TimeoutException;
  * @since 23.0
  */
 @Beta
-@DoNotMock("Use FluentFuture.from(Futures.immediate*Future) or SettableFuture")
 @GwtCompatible(emulated = true)
 public abstract class FluentFuture<V> extends GwtFluentFutureCatchingSpecialization<V> {
   FluentFuture() {}
@@ -129,7 +127,7 @@ public abstract class FluentFuture<V> extends GwtFluentFutureCatchingSpecializat
   }
 
   /**
-   * Returns a {@code Future} whose result is taken from this {@code Future} or, if the this {@code
+   * Returns a {@code Future} whose result is taken from this {@code Future} or, if this {@code
    * Future} fails with the given {@code exceptionType}, from the result provided by the {@code
    * fallback}. {@link AsyncFunction#apply} is not invoked until the primary input has failed, so if
    * the primary input succeeds, it is never invoked. If, during the invocation of {@code fallback},
@@ -152,7 +150,6 @@ public abstract class FluentFuture<V> extends GwtFluentFutureCatchingSpecializat
    * // TimeoutException.
    * ListenableFuture<Integer> faultTolerantFuture =
    *     fetchCounters().catchingAsync(
-   *         fetchCounterFuture,
    *         FetchException.class,
    *         e -> {
    *           if (omitDataOnFetchFailure) {

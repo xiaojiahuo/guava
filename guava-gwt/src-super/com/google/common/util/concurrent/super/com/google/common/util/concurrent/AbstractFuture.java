@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /** Emulation for AbstractFuture in GWT. */
 public abstract class AbstractFuture<V> extends FluentFuture<V> {
@@ -155,7 +155,7 @@ public abstract class AbstractFuture<V> extends FluentFuture<V> {
 
     // If this future is already cancelled, cancel the delegate.
     // TODO(cpovirk): Should we do this at the end of the method, as in the server version?
-    // TODO(cpovirk): Use maybePropagateCancellation?
+    // TODO(cpovirk): Use maybePropagateCancellationTo?
     if (isCancelled()) {
       future.cancel(mayInterruptIfRunning);
     }
@@ -192,7 +192,7 @@ public abstract class AbstractFuture<V> extends FluentFuture<V> {
     return throwable;
   }
 
-  final void maybePropagateCancellation(@Nullable Future<?> related) {
+  final void maybePropagateCancellationTo(@Nullable Future<?> related) {
     if (related != null & isCancelled()) {
       related.cancel(wasInterrupted());
     }
@@ -234,9 +234,8 @@ public abstract class AbstractFuture<V> extends FluentFuture<V> {
    */
   @Nullable
   String pendingToString() {
-    Object localValue = value;
-    if (localValue instanceof AbstractFuture.SetFuture) {
-      return "setFuture=[" + ((AbstractFuture.SetFuture) localValue).delegate + "]";
+    if (state == State.DELEGATED) {
+      return "setFuture=[" + delegate + "]";
     }
     return null;
   }
@@ -334,8 +333,10 @@ public abstract class AbstractFuture<V> extends FluentFuture<V> {
       try {
         executor.execute(command);
       } catch (RuntimeException e) {
-        log.log(Level.SEVERE, "RuntimeException while executing runnable "
-            + command + " with executor " + executor, e);
+        log.log(
+            Level.SEVERE,
+            "RuntimeException while executing runnable " + command + " with executor " + executor,
+            e);
       }
     }
   }
